@@ -14,7 +14,8 @@ from datetime import datetime
 
 # Styling
 external_stylesheets = [
-    'https://fonts.googleapis.com/css?family=Lato:400,700|Montserrat|Roboto',
+    'https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap',
+    'https://fonts.googleapis.com/css?family=Source+Sans+Pro:600',
     'https://use.fontawesome.com/releases/v5.7.2/css/all.css'
 ]
 
@@ -126,7 +127,7 @@ for bond in list(df_hp.columns[1:]):
 header_values = df_cf.columns.tolist()
 header_values_string = ['Bond']
 #header_values_string.append('Bond')
-for col in header_values:
+for col in header_values[1:]:
     header_values_string.append(col.strftime("%b %Y"))
 df_cf.reset_index(inplace=True)
 print(df_cf.T.values.tolist())
@@ -153,9 +154,33 @@ def nav_item(icon, name, selected):
 
 def header():
     return html.Div([
+        logo(),
+        tabs(),
+        user_container()
+    ], className='header')
+
+def tabs():
+    return html.Div([
+        dcc.Tabs(id="tabs-example", value='metrics', children=[
+        dcc.Tab(label='Metrics', value='metrics'),
+        dcc.Tab(label='Risk Exposure', value='risk-exposure'),
+        dcc.Tab(label='Performance', value='performance'),
+        dcc.Tab(label='Cash Flow', value='cash-flow'),
+        dcc.Tab(label='Price History', value='price-history'),
+        dcc.Tab(label='Detailed View', value='detailed-view')
+        ])
+    ], className='maincontent')
+
+def user_container():
+    return html.Div([
+        'Some user stuff!'
+    ], className='user')
+
+def logo():
+    return html.Div([
         '',
         html.Img(src='../assets/Logo.png', className='logo')
-    ], className='header')
+    ], className='logo')
 
 def tab_container(title, insides):
     return html.Div([
@@ -176,6 +201,7 @@ def metric_important(title, value):
 
 def tab_metrics():
     return html.Div([
+        html.H1('Portfolio Snapshot'),
         html.Div([
             metric_item('FACE VALUE', String_Face_Value),
             metric_item('MARKET VALUE', String_Market_Value),
@@ -188,6 +214,7 @@ def tab_metrics():
             metric_item('AVERAGE MATURITY', String_Average_Maturity),
             metric_item('AVERAGE DURATION', String_Average_Duration)
         ],className='row tabsrow'),
+        html.H1('Portfolio Status'),
         html.Div([
             dcc.Graph(id='portfolio-bubble-graph',
                 figure = {'data': [go.Scatter(          # start with a normal scatter plot
@@ -207,6 +234,18 @@ def tab_metrics():
             )
         ])
     ])
+
+def country_graph():
+    trace_country = go.Bar(
+                        x=df.groupby('COUNTRY').sum()['ADJ'].sort_values(ascending=False).index,
+                        y=df.groupby('COUNTRY').sum()['ADJ'].sort_values(ascending=False),
+                        marker=dict(color='rgb(230,115,0)')
+                    )
+    layout_country = go.Layout(title='Country Exposure', showlegend=False)
+    return html.Div[(
+            dcc.Graph(id='risk-country', figure = {'data':[trace_country], 'layout': layout_country})
+        )]
+
 
 def tab_risk_exposure():
     trace_country = go.Bar(
@@ -240,41 +279,47 @@ def tab_risk_exposure():
                         marker=dict(color='rgb(230,115,0)')
                     )
     
-    fig = tools.make_subplots(rows=2, cols=3, subplot_titles=('Country Exposure','Issuer Exposure',
-                                                              'Sector Exposure','Currency Exposure',
-                                                              'Rating Exposure','Duration Ladder'))
+    layout_country = go.Layout(title='Country Exposure', showlegend=False)
+    layout_ticker = go.Layout(title='Issuer Exposure', showlegend=False)
+    layout_sector = go.Layout(title='Sector Exposure', showlegend=False)
+    layout_currency = go.Layout(title='Currency Exposure', showlegend=False)
+    layout_rating = go.Layout(title='Rating Exposure', showlegend=False)
+    layout_duration = go.Layout(title='Duration Ladder', showlegend=False, xaxis=dict(dtick=1,tickmode='linear'))
 
-    fig.append_trace(trace_country, 1, 1)
-    fig.append_trace(trace_ticker, 1, 2)
-    fig.append_trace(trace_sector, 1, 3)
-    fig.append_trace(trace_currency, 2, 1)
-    fig.append_trace(trace_rating, 2, 2)
-    fig.append_trace(trace_duration, 2, 3)
-
-    fig['layout'].update(height=700, showlegend=False, xaxis6=dict(dtick=1,tickmode='linear'))
+    fig_country = {'data':[trace_country], 'layout': layout_country}
+    fig_ticker = {'data':[trace_ticker], 'layout': layout_ticker}
+    fig_sector = {'data':[trace_sector], 'layout': layout_sector}
+    fig_currency = {'data':[trace_currency], 'layout': layout_currency}
+    fig_rating = {'data':[trace_rating], 'layout': layout_rating}
+    fig_duration = {'data':[trace_duration], 'layout': layout_duration}
     
+
     return html.Div([
-        dcc.Graph(figure=fig, id='risk-exposure')
+
+        html.Div([
+            dcc.Graph(id='risk-country', figure = fig_country )
+        ]),
+        html.Div([
+            dcc.Graph(id='risk-ticker', figure = fig_ticker)
+        ]),
+        html.Div([
+            dcc.Graph(id='risk-sector', figure = fig_sector)
+        ]),
+        html.Div([
+            dcc.Graph(id='risk-currency', figure = fig_currency)
+        ]),
+        html.Div([
+            dcc.Graph(id='risk-rating', figure = fig_rating)
+        ]),
+        html.Div([
+            dcc.Graph(id='risk-duration', figure = fig_duration)
+        ])        
     ])
 
+
 app.layout = html.Div([
-    html.Div([
-        left_nav(),
-        html.Div([
-            header(),
-            html.Div([
-                dcc.Tabs(id="tabs-example", value='metrics', children=[
-                dcc.Tab(label='Metrics', value='metrics'),
-                dcc.Tab(label='Risk Exposure', value='risk-exposure'),
-                dcc.Tab(label='Performance', value='performance'),
-                dcc.Tab(label='Cash Flow', value='cash-flow'),
-                dcc.Tab(label='Price History', value='price-history'),
-                dcc.Tab(label='Detailed View', value='detailed-view')
-                ]),
-                html.Div(id='tabs-content-example')
-            ], className='maincontent'),
-        ], className='rightpane')
-    ], className='row')
+    header(),
+    html.Div(id='tabs-content-example')
 ], className='container')
 
 #Callback to render tabs
