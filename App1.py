@@ -126,7 +126,7 @@ for bond in list(df_hp.columns[1:]):
 header_values = df_cf.columns.tolist()
 header_values_string = ['Bond']
 #header_values_string.append('Bond')
-for col in header_values[1:]:
+for col in header_values:
     header_values_string.append(col.strftime("%b %Y"))
 df_cf.reset_index(inplace=True)
 print(df_cf.T.values.tolist())
@@ -350,7 +350,7 @@ def render_content(tab):
                 figure = {'data': [go.Table(
                                     columnwidth = [1.5,1,1,1,1,1,1,1,1,1,1,1,1],
                                     header = dict(values=header_values_string, align = ['left', 'center']),
-                                    cells = dict(values=df_cf.T.values.tolist()[1:], align = ['left', 'center'])
+                                    cells = dict(values=df_cf.T.values.tolist(), align = ['left', 'center'])
                                     )
                                   ],
                         'layout' : go.Layout(title="Cash Flow for the upcoming year", height=700)
