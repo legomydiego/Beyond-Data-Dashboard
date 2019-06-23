@@ -14,7 +14,8 @@ from datetime import datetime
 
 # Styling
 external_stylesheets = [
-    'https://fonts.googleapis.com/css?family=Lato:400,700|Montserrat|Roboto',
+    'https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap',
+    'https://fonts.googleapis.com/css?family=Source+Sans+Pro:600',
     'https://use.fontawesome.com/releases/v5.7.2/css/all.css'
 ]
 
@@ -126,7 +127,7 @@ for bond in list(df_hp.columns[1:]):
 header_values = df_cf.columns.tolist()
 header_values_string = ['Bond']
 #header_values_string.append('Bond')
-for col in header_values:
+for col in header_values[1:]:
     header_values_string.append(col.strftime("%b %Y"))
 df_cf.reset_index(inplace=True)
 print(df_cf.T.values.tolist())
@@ -153,9 +154,33 @@ def nav_item(icon, name, selected):
 
 def header():
     return html.Div([
+        logo(),
+        tabs(),
+        user_container()
+    ], className='header')
+
+def tabs():
+    return html.Div([
+        dcc.Tabs(id="tabs-example", value='metrics', children=[
+        dcc.Tab(label='Metrics', value='metrics'),
+        dcc.Tab(label='Risk Exposure', value='risk-exposure'),
+        dcc.Tab(label='Performance', value='performance'),
+        dcc.Tab(label='Cash Flow', value='cash-flow'),
+        dcc.Tab(label='Price History', value='price-history'),
+        dcc.Tab(label='Detailed View', value='detailed-view')
+        ])
+    ], className='maincontent')
+
+def user_container():
+    return html.Div([
+        'Some user stuff!'
+    ], className='user')
+
+def logo():
+    return html.Div([
         '',
         html.Img(src='../assets/Logo.png', className='logo')
-    ], className='header')
+    ], className='logo')
 
 def tab_container(title, insides):
     return html.Div([
@@ -176,6 +201,7 @@ def metric_important(title, value):
 
 def tab_metrics():
     return html.Div([
+        html.H1('Portfolio Snapshot'),
         html.Div([
             metric_item('FACE VALUE', String_Face_Value),
             metric_item('MARKET VALUE', String_Market_Value),
@@ -188,6 +214,7 @@ def tab_metrics():
             metric_item('AVERAGE MATURITY', String_Average_Maturity),
             metric_item('AVERAGE DURATION', String_Average_Duration)
         ],className='row tabsrow'),
+        html.H1('Portfolio Status'),
         html.Div([
             dcc.Graph(id='portfolio-bubble-graph',
                 figure = {'data': [go.Scatter(          # start with a normal scatter plot
@@ -258,23 +285,8 @@ def tab_risk_exposure():
     ])
 
 app.layout = html.Div([
-    html.Div([
-        left_nav(),
-        html.Div([
-            header(),
-            html.Div([
-                dcc.Tabs(id="tabs-example", value='metrics', children=[
-                dcc.Tab(label='Metrics', value='metrics'),
-                dcc.Tab(label='Risk Exposure', value='risk-exposure'),
-                dcc.Tab(label='Performance', value='performance'),
-                dcc.Tab(label='Cash Flow', value='cash-flow'),
-                dcc.Tab(label='Price History', value='price-history'),
-                dcc.Tab(label='Detailed View', value='detailed-view')
-                ]),
-                html.Div(id='tabs-content-example')
-            ], className='maincontent'),
-        ], className='rightpane')
-    ], className='row')
+    header(),
+    html.Div(id='tabs-content-example')
 ], className='container')
 
 #Callback to render tabs
