@@ -1,0 +1,555 @@
+import dash
+import dash_auth
+import dash_core_components as dcc
+import dash_html_components as html
+import plotly.graph_objs as go
+import dash_table
+from plotly import tools
+import pandas as pd
+import numpy as np
+from dash.dependencies import Input, Output, State
+from babel.numbers import format_currency
+from DateTime import DateTime
+from datetime import datetime
+
+# Styling
+external_stylesheets = [
+    'https://fonts.googleapis.com/css?family=Lato:400,700|Montserrat|Roboto',
+    'https://use.fontawesome.com/releases/v5.7.2/css/all.css'
+]
+
+# List of user and password combos
+USERNAME_PASSWORD_PAIRS = [
+    ['BeyondData', 'Demo123']
+]
+
+# Launch the application:
+app = dash.Dash(
+    __name__,
+    external_stylesheets=external_stylesheets
+)
+auth = dash_auth.BasicAuth(app,USERNAME_PASSWORD_PAIRS)
+server = app.server
+app.config['suppress_callback_exceptions']=True
+# Create a DataFrame from the .csv file:
+df = pd.read_excel('Sample DF.xlsm').round(3)
+df_hp = pd.read_excel('Sample DF.xlsm','Historical Prices').round(3)
+df_cf = pd.read_excel('Sample DF.xlsm','Cash Flow')
+
+#Create a dataframe for returns indexed to 100
+rets = df_hp.set_index('DATE')
+rets.sort_index(inplace=True)
+rets = np.log(rets / rets.shift(1))
+for bond in list(rets.columns):
+    rets[bond] = 100*np.exp(np.nan_to_num(rets[bond].cumsum()))
+rets.sort_index(inplace=True, ascending=False)
+rets.reset_index(inplace= True)
+
+#Portfolio Metrics
+Face_Value = round(df['ADJ'].sum(),2)
+Market_Value = round(df['PRINCIPAL'].sum(),2)
+Accrued_Interest = round(df['INT'].sum(),2)
+Cost = round(sum(df['ADJ']*df['COST']/100),2)
+PNL = round((Market_Value+Accrued_Interest-Cost),2)
+PNL_PCT = round(PNL/Cost,2)
+Annual_Income = round(sum(df['ADJ']*df['COUPON']/100),2)
+Average_Yield = round(sum(df['TOTAL']*df['YTW']/sum(df['TOTAL'])),3)
+Average_Maturity = round(sum(df['TOTAL']*df['MATURITY']/sum(df['TOTAL'])),2)
+Average_Coupon = round(sum(df['TOTAL']*df['COUPON']/sum(df['TOTAL'])),3)
+Average_Duration = round(sum(df['TOTAL']*df['DUR']/sum(df['TOTAL'])),3)
+
+    #Average rating calculation
+Rating_String = ['AAA','AAA/*+','AAA/*-','AA+','AA+/*+','AA+/*-','AA','AA/*+','AA/*-','AA-','AA-/*+','AA-/*-','A+','A+/*+','A+/*-','A','A/*+','A/*-','A-','A-/*+','A-/*-','BBB+','BBB+/*+','BBB+/*-','BBB','BBB/*+','BBB/*-','BBB-','BBB-/*+','BBB-/*-','BB+','BB+/*+','BB+/*-','BB','BB/*+','BB/*-','BB-','BB-/*+','BB-/*-','B+','B+/*+','B+/*-','B','B/*+','B/*-','B-','B-/*+','B-/*-','CCC+','CCC+/*+','CCC+/*-','CCC','CCC/*+','CCC/*-','CCC-','CCC-/*+','CCC-/*-','CC','CC/*+','CC/*-','C','C/*+','C/*-','D','D/*+','D/*-','Other']
+Rating_Value = [23,23,23,22,22,22,21,21,21,20,20,20,19,19,19,18,18,18,17,17,17,16,16,16,15,15,15,14,14,14,13,13,13,12,12,12,11,11,11,10,10,10,9,9,9,8,8,8,7,7,7,6,6,6,5,5,5,4,4,4,3,3,3,2,2,2,1]
+Rating_Lookup = dict(zip(Rating_String, Rating_Value))
+df['RATING_NUMERIC'] = df['RATING'].apply(lambda x: Rating_Lookup[x])
+Average_Rating = list(Rating_Lookup.keys())[list(Rating_Lookup.values()).index(round(sum(df['TOTAL']*df['RATING_NUMERIC']/sum(df['TOTAL']))))]
+
+#Total Return calculation
+days=30
+day_count=360
+df['CARRY'] = round((df['COUPON']/100*df['FACE']*days/day_count)/df['ADJ'],3)
+df['TOTAL_RETURN'] = round((df['CHANGE'] + df['CARRY'])*100,3)
+
+#Strings for metrics
+String_Face_Value = format_currency(Face_Value,'USD',locale='en_US')
+String_Market_Value = format_currency(Market_Value,'USD',locale='en_US')
+String_Accrued_Interest = format_currency(Accrued_Interest,'USD',locale='en_US')
+String_Cost = format_currency(Cost,'USD',locale='en_US')
+String_PNL = format_currency(PNL,'USD',locale='en_US')
+String_PNL_PCT = ' ('+str(PNL_PCT)+'%)'
+String_Annual_Income = format_currency(Annual_Income,'USD',locale='en_US')
+String_Average_Yield = str(Average_Yield)+'%'
+String_Average_Maturity = str(Average_Maturity)
+String_Average_Coupon = str(Average_Coupon)+'%'
+String_Average_Duration = str(Average_Duration)
+String_Average_Rating = Average_Rating
+
+# Dropdown options for risk exposure
+options=['COUNTRY','SECTOR','RATING']
+
+# Create sorting list for rating exposure graph and convert rating column to categorical 
+rating_sort_list = list(i for i in Rating_String if i in df['RATING'].unique())
+df['RATING'] = pd.Categorical(df['RATING'], Rating_Lookup)
+
+# Create df for ratings and filters rows with 0 on its values
+df_rating = df.groupby('RATING').sum().sort_values('RATING')
+df_rating = df_rating[df_rating[df_rating==0].all(axis=1)]
+
+# Create index for duration graph by converting to datetime
+#duration_int_list = df.groupby('DURATION').sum()['ADJ'].sort_values(ascending=False).index.tolist()
+#duration_str_list = list(map(str, duration_int_list))
+#datetime_list = []
+#for year in duration_str_list:
+#    datetime_list.append(datetime.strptime(year, '%Y'))
+
+# Dropdown options for historical price graph
+options_hp= []
+for bond in list(df_hp.columns[1:]):
+        mydict={}
+        mydict['label']=bond
+        mydict['value']=bond
+        options_hp.append(mydict)
+
+# Create traces for the initial historical price graph
+hp_traces=[]
+for bond in list(df_hp.columns[1:]):
+    hp_traces.append({'x':df_hp['DATE'],'y':df_hp[bond],'name':bond})
+
+# Create traces for the initial historical price graph
+rets_traces=[]
+for bond in list(df_hp.columns[1:]):
+    rets_traces.append({'x':rets['DATE'],'y':rets[bond],'name':bond})
+
+# For Cash Flow df, convert columns to strings, move index to bonds column
+#df_cf.columns[1:] = df_cf.columns[1:].strftime("%b %Y")
+header_values = df_cf.columns.tolist()
+header_values_string = ['Bond']
+#header_values_string.append('Bond')
+for col in header_values[1:]:
+    header_values_string.append(col.strftime("%b %Y"))
+df_cf.reset_index(inplace=True)
+print(df_cf.T.values.tolist())
+#df_cf.rename({'index':'Bond'}, axis=1, inplace=True)
+
+#Function to build left nav
+# Diego, uncomment this and comment the other left_nav function to make it look like what you actually want
+def left_nav():
+    return ''
+
+# def left_nav():
+#     return html.Div([
+#         html.Img(src='../assets/profile.jpg', className='profile'),
+#         nav_item('user', 'Account', ''),
+#         nav_item('globe-americas', 'Portfolio', 'nav-selected'),
+#         nav_item('envelope-open-text', 'Alerts', '')
+#     ],className='leftnav')
+
+def nav_item(icon, name, selected):
+    return html.Div([
+        html.Span('', className='fas fa-' + icon),
+        ' ' + name
+    ], className= selected + ' nav-option')
+
+def header():
+    return html.Div([
+        '',
+        html.Img(src='../assets/Logo.png', className='logo')
+    ], className='header')
+
+def tab_container(title, insides):
+    return html.Div([
+        insides
+    ], className='tabcontainer')
+
+def metric_item(title, value):
+    return html.Div([
+        html.Div(title, className='metricTitle'),
+        html.Div(value, className='metricValue')
+    ], className='metricCard')
+
+def metric_important(title, value):
+    return html.Div([
+        html.Div(title, className='metricImportantTitle'),
+        html.Div(value, className='metricImportantValue')
+    ], className='metricRow')
+
+def tab_metrics():
+    return html.Div([
+        html.Div([
+            metric_item('FACE VALUE', String_Face_Value),
+            metric_item('MARKET VALUE', String_Market_Value),
+            metric_item('COST', String_Cost),
+            metric_item('ACCRUED INTEREST', String_Accrued_Interest),
+            metric_item('PNL', String_PNL+String_PNL_PCT),
+            metric_item('AVERAGE RATING', String_Average_Rating),
+            metric_item('AVERAGE COUPON', String_Average_Coupon),
+            metric_item('AVERAGE YIELD', String_Average_Yield),
+            metric_item('AVERAGE MATURITY', String_Average_Maturity),
+            metric_item('AVERAGE DURATION', String_Average_Duration)
+        ],className='row tabsrow'),
+        html.Div([
+            dcc.Graph(id='portfolio-bubble-graph',
+                figure = {'data': [go.Scatter(          # start with a normal scatter plot
+                    x=df['DUR'],
+                    y=df['YTW'],
+                    text=df['DESCRIPTION'],
+                    mode='markers',
+                    marker=dict(size=df['ADJ']/10000) # set the marker size
+                    )],
+                    'layout' : go.Layout(
+                        title='Portfolio Status',
+                        xaxis = dict(title = 'Duration', tickmode='linear'), # x-axis label
+                        yaxis = dict(title = 'Yield (%)'),        # y-axis label
+                        hovermode='closest'
+                    )
+                }
+            )
+        ])
+    ])
+
+def tab_risk_exposure():
+    trace_country = go.Bar(
+                        x=df.groupby('COUNTRY').sum()['ADJ'].sort_values(ascending=False).index,
+                        y=df.groupby('COUNTRY').sum()['ADJ'].sort_values(ascending=False),
+                        marker=dict(color='rgb(230,115,0)')
+                    )
+    trace_ticker = go.Bar(
+                        x=df.groupby('TICKER').sum()['ADJ'].sort_values(ascending=False).index,
+                        y=df.groupby('TICKER').sum()['ADJ'].sort_values(ascending=False),
+                        marker=dict(color='rgb(230,115,0)')
+                    )
+    trace_sector = go.Bar(
+                        x=df.groupby('SECTOR').sum()['ADJ'].sort_values(ascending=False).index,
+                        y=df.groupby('SECTOR').sum()['ADJ'].sort_values(ascending=False),
+                        marker=dict(color='rgb(230,115,0)')
+                    )
+    trace_currency = go.Bar(
+                        x=df.groupby('CURRENCY').sum()['ADJ'].sort_values(ascending=False).index,
+                        y=df.groupby('CURRENCY').sum()['ADJ'].sort_values(ascending=False),
+                        marker=dict(color='rgb(230,115,0)')
+                    )
+    trace_rating = go.Bar(
+                        x=df_rating['ADJ'].index,
+                        y=df_rating['ADJ'],
+                        marker=dict(color='rgb(230,115,0)')
+                    )
+    trace_duration = go.Bar(
+                        x=df.groupby('DURATION').sum()['ADJ'].sort_values(ascending=False).index,
+                        y=df.groupby('DURATION').sum()['ADJ'].sort_values(ascending=False),
+                        marker=dict(color='rgb(230,115,0)')
+                    )
+    
+    fig = tools.make_subplots(rows=2, cols=3, subplot_titles=('Country Exposure','Issuer Exposure',
+                                                              'Sector Exposure','Currency Exposure',
+                                                              'Rating Exposure','Duration Ladder'))
+
+    fig.append_trace(trace_country, 1, 1)
+    fig.append_trace(trace_ticker, 1, 2)
+    fig.append_trace(trace_sector, 1, 3)
+    fig.append_trace(trace_currency, 2, 1)
+    fig.append_trace(trace_rating, 2, 2)
+    fig.append_trace(trace_duration, 2, 3)
+
+    fig['layout'].update(height=700, showlegend=False, xaxis6=dict(dtick=1,tickmode='linear'))
+    
+    return html.Div([
+        dcc.Graph(figure=fig, id='risk-exposure')
+    ])
+
+app.layout = html.Div([
+    html.Div([
+        left_nav(),
+        html.Div([
+            header(),
+            html.Div([
+                dcc.Tabs(id="tabs-example", value='metrics', children=[
+                dcc.Tab(label='Metrics', value='metrics'),
+                dcc.Tab(label='Risk Exposure', value='risk-exposure'),
+                dcc.Tab(label='Performance', value='performance'),
+                dcc.Tab(label='Cash Flow', value='cash-flow'),
+                dcc.Tab(label='Price History', value='price-history'),
+                dcc.Tab(label='Detailed View', value='detailed-view')
+                ]),
+                html.Div(id='tabs-content-example')
+            ], className='maincontent'),
+        ], className='rightpane')
+    ], className='row')
+], className='container')
+
+#Callback to render tabs
+@app.callback(Output('tabs-content-example', 'children'),
+              [Input('tabs-example', 'value')])
+def render_content(tab):
+    if tab == 'metrics':
+        return tab_container('Metrics', tab_metrics())
+    elif tab == 'risk-exposure':
+        return tab_container('Risk Exposure', tab_risk_exposure())
+    elif tab == 'performance':
+        return tab_container('Performance', html.Div([
+            html.Div([
+                dcc.Dropdown(
+                    id='column_filter',
+                    options= [{'label': 'Country Exposure', 'value': 'COUNTRY'},
+                             {'label': 'Sector Exposure', 'value': 'SECTOR'},
+                             {'label': 'Rating Exposure', 'value': 'RATING'}],
+                    multi=False
+            )], style={'display':'inline-block','width':'30%'}),
+            html.Div([
+                dcc.Dropdown(
+                    id='value_filter',
+                    multi=False
+            )], style={'display':'inline-block','width':'30%'}),
+            html.Div([
+                html.Button(id='filter-button',
+                    n_clicks=0,
+                    children = 'Submit',
+                    style={'fontsize':24,'marginLeft':'30px'}
+                )],style={'display':'inline-block','verticalAlign':'top'}),
+            html.Div([
+                dcc.Graph(id='total_return_graph',
+                figure = {'data':[go.Bar(
+                            y=df['DESCRIPTION'],
+                            x=df['CHANGE']*100,
+                            name='Price Change',
+                            marker=dict(color='rgb(0,128,85)'),
+                            orientation= 'h'
+                            ),
+                        go.Bar(
+                            y=df['DESCRIPTION'],
+                            x=df['CARRY']*100,
+                            text=df['CARRY']*100,
+                            name='Carry',
+                            marker=dict(color='rgb(0,51,102)'),
+                            orientation= 'h'
+                            ),
+                        go.Bar(
+                            y=df['DESCRIPTION'],
+                            x=df['TOTAL_RETURN'],
+                            name='Total Return',
+                            marker=dict(color='rgb(93,173,236)'),
+                            orientation= 'h'
+                            )
+                        ],
+                        'layout': go.Layout(
+                            title = 'Total Return',
+                            yaxis = {'automargin': True, 'visible': True, 'showgrid': True},
+                            xaxis = dict(dtick=1, tickfont = dict(size= 11)),
+                            hovermode= 'closest',
+                            height= 70*len(df.index)
+                        )
+                    }
+                
+                )
+            ],style={'max-height':'600px', 'overflow-y': 'auto', 'position': 'relative'})
+            
+        ]))
+    elif tab == 'cash-flow':
+        return tab_container('Cash Flow', html.Div([
+            dcc.Graph(id='cash-flow-graph',
+                figure = {'data': [go.Table(
+                                    columnwidth = [1.5,1,1,1,1,1,1,1,1,1,1,1,1],
+                                    header = dict(values=header_values_string, align = ['left', 'center']),
+                                    cells = dict(values=df_cf.T.values.tolist()[1:], align = ['left', 'center'])
+                                    )
+                                  ],
+                        'layout' : go.Layout(title="Cash Flow for the upcoming year", height=700)
+                }
+            )
+        ]))
+    elif tab == 'price-history':
+        return tab_container('Price History', html.Div([
+            html.Div([
+                dcc.Dropdown(
+                    id='chart_picker',
+                    options= [
+                        {'label': 'Price', 'value': 'Price'},
+                        {'label': 'Return', 'value': 'Return'}
+                    ],
+            )], style={'display':'inline-block','verticalAlign':'top', 'width':'25%'}),
+            html.Div([
+                dcc.Dropdown(
+                    id='my_bond_picker',
+                    options= options_hp,
+                    multi=True
+            )], style={'display':'inline-block','verticalAlign':'top','width':'50%'}),
+            html.Div([
+                html.Button(id='submit-button',
+                    n_clicks=0,
+                    children = 'Submit',
+                    style={'fontsize':24,'marginLeft':'30px'}
+                )],style={'display':'inline-block','verticalAlign':'top'}),
+            html.Div([
+                dcc.Graph(id='price_history_graph',
+                    
+                    figure={
+                        'data':hp_traces,
+                        'layout':go.Layout(title="Historical Price", height=700)
+                    }
+                )
+            ])
+        ]))
+    elif tab == 'detailed-view':
+        return tab_container('Detailed View', html.Div([
+            dash_table.DataTable(
+                id='table',
+                columns=[{"name": i, "id": i} for i in ['ISSUER','COUPON','MATURITY','ADJ','COST','PX','CHANGE','TOTAL','RTG','GROUP','COUNTRY']],
+                data=df.to_dict("rows"),
+                style_header={
+                    'fontWeight': 'bold',
+                    'fontSize': 20,
+                    'vertical-align': 'middle'
+                },
+                style_cell={'textAlign': 'center'},
+                style_as_list_view=True,
+                style_cell_conditional=[{
+                    'if': {'row_index': 'odd'},
+                    'backgroundColor': 'rgb(224,141,60)'
+                }],
+                sorting=True
+            )
+        ]))
+    
+
+#Callback to Render graphs for Risk Exposures
+
+@app.callback(Output('main-graph', 'figure'),
+              [Input('graph-picker', 'value')])
+def update_figure(selected_graph):
+  
+    if selected_graph == 'RATING':
+        rating_sort_list = list(i for i in Rating_String if i in df['RATING'].unique())
+        return {
+            'data':[go.Bar(
+                x=df.groupby(selected_graph).sum()['ADJ'].sort_values(ascending=False).index,
+                y=df.groupby(selected_graph).sum()['ADJ'].sort_values(ascending=False),
+                marker=dict(color='rgb(230,115,0)')
+                )
+            ],
+            'layout': go.Layout(
+                        autosize = True,
+                        title = selected_graph.capitalize() +' Exposure',
+                        xaxis= dict(categoryorder = "array", categoryarray = rating_sort_list)                    
+                    )
+        }
+    else:
+        return {
+            'data':[go.Bar(
+                x=df.groupby(selected_graph).sum()['ADJ'].sort_values(ascending=False).index,
+                y=df.groupby(selected_graph).sum()['ADJ'].sort_values(ascending=False),
+                marker=dict(color='rgb(230,115,0)')
+                )
+            ],
+            'layout': go.Layout(
+                        autosize = True,
+                        title = selected_graph.capitalize() +' Exposure'                    
+                    )
+        }
+
+#Callback for setting values on second dropdown to filter Total Return Graph
+
+@app.callback(
+    Output('value_filter', 'options'),
+    [Input('column_filter', 'value')])
+def set_values_options(column):
+    return [{'label': i, 'value': i} for i in df[column].unique()]
+
+#Callback to update Total Return Graph based on the column and value dropdowns
+
+@app.callback(
+    Output('total_return_graph','figure'),
+    [Input('filter-button','n_clicks')],
+    [State('column_filter','value'),
+    State('value_filter','value')])
+def updated_total_return_graph(n_clicks,column,value):
+    if column != None and value != None:
+        filtered_df = df[df[column]==value]
+        fig = {'data':[go.Bar(
+                                y=filtered_df['DESCRIPTION'],
+                                x=filtered_df['CHANGE']*100,
+                                name='Price Change',
+                                marker=dict(color='rgb(0,128,85)'),
+                                orientation= 'h',
+                                width= 0.25
+                                ),
+                            go.Bar(
+                                y=filtered_df['DESCRIPTION'],
+                                x=filtered_df['CARRY']*100,
+                                name='Carry',
+                                marker=dict(color='rgb(0,51,102)'),
+                                orientation= 'h',
+                                width= 0.25
+                                ),
+                            go.Bar(
+                                y=filtered_df['DESCRIPTION'],
+                                x=filtered_df['TOTAL_RETURN'],
+                                name='Total Return',
+                                marker=dict(color='rgb(93,173,236)'),
+                                orientation= 'h',
+                                width= 0.25
+                                )
+                            ],
+                            'layout': go.Layout(
+                                title = value +' Total Return',
+                                yaxis = {'automargin': True},
+                                xaxis = dict(tickfont = dict(size= 11)),
+                                hovermode= 'closest',
+                                bargap= 0,
+                                height= 300 if len(filtered_df.index) == 1 else 175*len(filtered_df.index)
+                            )
+                        }
+        return fig
+
+
+#Callback to Render graphs for Price History
+
+@app.callback(
+    Output('price_history_graph','figure'),
+    [Input('submit-button','n_clicks')],
+    [State('my_bond_picker','value'),
+    State('chart_picker','value')])
+def update_hp_chart(n_clicks,selected_bonds,chart_picker):
+    if selected_bonds is None or len(selected_bonds)==0: 
+        if chart_picker == 'Price':
+            fig={
+                    'data':hp_traces,
+                    'layout':go.Layout(title="Historical Price", height=700)
+                }
+            return fig
+
+        elif chart_picker == 'Return':
+            fig={
+                    'data':rets_traces,
+                    'layout':go.Layout(title="Historical Price", height=700)
+                }
+            return fig
+    elif len(selected_bonds) >= 1:
+        traces=[]
+        if chart_picker == 'Price':
+            for bond in selected_bonds:
+                traces.append({'x':df_hp['DATE'],'y':df_hp[bond],'name':bond})
+            fig={
+                'data':traces,
+                'layout':{'title':'Historical Price'}
+                }
+            return fig
+        elif chart_picker == 'Return':
+            for bond in selected_bonds:
+                traces.append({'x':rets['DATE'],'y':rets[bond],'name':bond})
+            fig={
+                'data':traces,
+                'layout':{'title':'Historical Price'}
+                }
+            return fig
+
+
+    
+
+if __name__ == '__main__':
+    app.run_server()
+
+
+
+
+
+

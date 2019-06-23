@@ -1,0 +1,206 @@
+html {
+    font-family: "Robot", Arial, sans-serif;
+    overflow: hidden;
+}
+
+._dash-undo-redo {
+    display: none;
+}
+
+.leftnav {
+    flex: 1;
+    background: linear-gradient(135deg, #f6e6b4 0%,#ed9017 100%);
+    box-shadow: 2px 2px 10px 0px rgba(0,0,0,0.5);
+    margin: 0px;
+    padding: 5px;
+    z-index: 100;
+    height: 100vh;
+    max-width: 20em;
+    display: flex;
+    flex-direction: column;
+}
+
+.leftnav img {
+    margin-top: 20px;
+}
+
+.tab span {
+    text-transform: uppercase;
+    font-size: .75em;
+}
+
+.header {
+    flex: 1 100%;
+    background: linear-gradient(to left, #1c2335 0%,#3f4c6b 100%);
+    box-shadow: 1px 1px 2px 0px rgba(0,0,0,0.5);
+    height: 10vh;
+    z-index: 50;
+    text-transform: capitalize;
+    color: whitesmoke;
+    font-size: 3em;
+    text-align: right;
+    justify-content: center;
+    padding: 10px;
+}
+
+.logo {
+    align-self: flex-end;
+    height: 100%;
+}
+
+.rightpane {
+    flex: 4;
+    z-index: 10;
+    background-color: whitesmoke;
+}
+
+.maincontent {
+    padding: 20px;
+    height: 85vh;
+    overflow: auto;
+    background-color: white;
+    margin: 20px;
+    border-radius: 5px;
+    box-shadow: 3px 3px 4px 0px rgba(0,0,0,0.5);
+}
+
+.maincontent::-webkit-scrollbar-track
+{
+	border-radius: 10px;
+    background-color: transparent;
+    padding-top: 5px;
+}
+
+.maincontent::-webkit-scrollbar
+{
+	width: 12px;
+    background-color: transparent;
+}
+
+.maincontent::-webkit-scrollbar-thumb
+{
+    border-radius: 10px;
+	background-color: #3f4c6b46;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+}
+
+.tabcontainer {
+    padding-top: 20px;
+}
+
+.tabsrow {
+    /* width: 65%; */
+    flex-wrap: wrap;
+    padding-top: 5vh;
+}
+
+.tabsleft {
+    flex: 1;
+    padding: 10px;
+    margin-right: 40px;
+}
+
+.tabsright {
+    flex: 1;
+    padding: 10px;
+}
+
+h2 {
+    font-size: 2em;
+}
+
+.tab {
+    font-size: 1.5em;
+    border: none !important;
+    border-bottom: solid 1px #3f4c6b !important;
+    background-color: white !important;
+    border-radius: 8px 8px 0px 0px;
+    font-family: "Montserrat", sans-serif;
+}
+
+.tab--selected {
+    font-size: 1.6em;
+    border: 1px solid #ed9017 !important;
+    border-bottom: none !important;
+}
+
+
+.metricCard, .metricRow {
+    font-family: "Montserrat", sans-serif;
+    color: rgba(0,0,0,0.8);
+    /* min-width: 20%; */
+    flex-basis: auto; /* default value */
+    /* flex-grow: 1; */
+    margin-bottom: .285em;
+    margin-right: .285em;
+    /* box-shadow: 0px 0px 6px 0px rgba(0,0,0,0.25); */
+    box-shadow: 2px 2px 4px 0px rgba(0,0,0,0.25);
+    width: 17%;
+    padding: 1% 1%;
+    border-radius: .25em;
+    text-align: center;
+}
+
+.metricTitle {
+    flex: 1;
+    font-size: 1.0em;
+    margin-bottom: .25em;
+    /* font-weight: bold; */
+}
+
+.metricValue {
+    font-size: 1.8em;
+    font-weight: 700;
+}
+
+.metricImportantTitle {
+    flex: 1;
+    font-size: 1.3em;
+    margin-bottom: .25em;
+    /* font-weight: bold; */
+}
+
+.metricImportantValue {
+    font-size: 1.3em;
+}
+
+.nav-option {
+    margin: 20px;
+    padding: 10px 20px;
+    font-size: 1.4rem;
+    color: white;
+    border-radius: 20px;
+}
+
+.nav-option:hover {
+    background: rgba(255, 255, 255, .25);
+    cursor: pointer;
+}
+
+.nav-option span {
+    margin-right: 20px
+}
+
+.nav-selected, .nav-selected:hover {
+    background: white;
+    color: #ed9017;
+    box-shadow: 0px 0px 6px 0px rgba(0,0,0,0.25);
+}
+
+.profile {
+    width: 10em;
+    height: 10em;
+    align-self: center;
+    border-radius: 200px;
+}
+
+.js-plotly-plot {
+    padding: 10px !important;
+    border-radius: 5px;  
+    box-shadow: 2px 2px 4px 0px rgba(0,0,0,0.25);
+    width: 95%;
+}
