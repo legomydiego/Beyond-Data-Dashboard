@@ -235,18 +235,6 @@ def tab_metrics():
         ])
     ])
 
-def country_graph():
-    trace_country = go.Bar(
-                        x=df.groupby('COUNTRY').sum()['ADJ'].sort_values(ascending=False).index,
-                        y=df.groupby('COUNTRY').sum()['ADJ'].sort_values(ascending=False),
-                        marker=dict(color='rgb(230,115,0)')
-                    )
-    layout_country = go.Layout(title='Country Exposure', showlegend=False)
-    return html.Div[(
-            dcc.Graph(id='risk-country', figure = {'data':[trace_country], 'layout': layout_country})
-        )]
-
-
 def tab_risk_exposure():
     trace_country = go.Bar(
                         x=df.groupby('COUNTRY').sum()['ADJ'].sort_values(ascending=False).index,
