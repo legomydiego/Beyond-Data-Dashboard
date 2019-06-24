@@ -208,6 +208,7 @@ def tab_metrics():
             metric_item('COST', String_Cost),
             metric_item('ACCRUED INTEREST', String_Accrued_Interest),
             metric_item('PNL', String_PNL+String_PNL_PCT),
+            metric_item('ANNUAL INCOME', String_Annual_Income),
             metric_item('AVERAGE RATING', String_Average_Rating),
             metric_item('AVERAGE COUPON', String_Average_Coupon),
             metric_item('AVERAGE YIELD', String_Average_Yield),
