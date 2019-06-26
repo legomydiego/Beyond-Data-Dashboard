@@ -126,13 +126,24 @@ for bond in list(df_hp.columns[1:]):
 #df_cf.columns[1:] = df_cf.columns[1:].strftime("%b %Y")
 header_values = df_cf.columns.tolist()
 header_values_string = ['Bond']
-#header_values_string.append('Bond')
 for col in header_values[1:]:
     header_values_string.append(col.strftime("%b %Y"))
 df_cf.reset_index(inplace=True)
-print(df_cf.T.values.tolist())
+#print(df_cf.T.values.tolist())
 #df_cf.rename({'index':'Bond'}, axis=1, inplace=True)
 
+# Create list with alternating colors for cash flow rows
+odd_row = ['rgb(255,255,255)']
+even_row = ['#E6E6FF'] 
+cf_row_colors = [odd_row]
+for row in range(len(df_cf.T.values.tolist())):
+    if row%2 == 1:
+        cf_row_colors.append(odd_row)
+    else:
+        cf_row_colors.append(even_row)
+#print(cf_row_colors)
+cf_row_colors = list(map(list, np.transpose(cf_row_colors)))
+print(cf_row_colors)
 #Function to build left nav
 # Diego, uncomment this and comment the other left_nav function to make it look like what you actually want
 def left_nav():
@@ -383,11 +394,11 @@ def render_content(tab):
             dcc.Graph(id='cash-flow-graph',
                 figure = {'data': [go.Table(
                                     columnwidth = [1.5,1,1,1,1,1,1,1,1,1,1,1,1],
-                                    header = dict(values=header_values_string, align = ['left', 'center']),
-                                    cells = dict(values=df_cf.T.values.tolist(), align = ['left', 'center'])
+                                    header = dict(values=header_values_string, align = ['center']),
+                                    cells = dict(values=df_cf.T.values.tolist()[1:], align = ['left', 'center'], fill=dict(color = cf_row_colors))
                                     )
                                   ],
-                        'layout' : go.Layout(title="Cash Flow for the upcoming year", height=700)
+                        'layout' : go.Layout(height=700)
                 }
             )
         ]))
@@ -432,13 +443,14 @@ def render_content(tab):
                 style_header={
                     'fontWeight': 'bold',
                     'fontSize': 20,
-                    'vertical-align': 'middle'
+                    'vertical-align': 'middle',
+                    'backgroundColor': 'rgb(196,196,196)'
                 },
                 style_cell={'textAlign': 'center'},
                 style_as_list_view=True,
                 style_cell_conditional=[{
                     'if': {'row_index': 'odd'},
-                    'backgroundColor': 'rgb(224,141,60)'
+                    'backgroundColor': 'rgb(248,248,248)'
                 }],
                 sorting=True
             )
