@@ -207,27 +207,33 @@ def metric_item(title, value):
         html.Div(value, className='metricValue')
     ], className='metricCard')
 
-def metric_important(title, value):
+def metric_large(title, value, percent):
     return html.Div([
-        html.Div(title, className='metricImportantTitle'),
-        html.Div(value, className='metricImportantValue')
-    ], className='metricRow')
+        html.Div(title, className='metricTitle'),
+        html.Div(value, className='metricValue'),
+        html.Div(percent, className='metricPercent')
+    ], className='metricCard')
 
 def tab_metrics():
     return html.Div([
         html.H1('Portfolio Snapshot'),
         html.Div([
-            metric_item('FACE VALUE', String_Face_Value),
-            metric_item('MARKET VALUE', String_Market_Value),
-            metric_item('COST', String_Cost),
-            metric_item('ACCRUED INTEREST', String_Accrued_Interest),
-            metric_item('PNL', String_PNL+String_PNL_PCT),
-            metric_item('ANNUAL INCOME', String_Annual_Income),
-            metric_item('AVERAGE RATING', String_Average_Rating),
-            metric_item('AVERAGE COUPON', String_Average_Coupon),
-            metric_item('AVERAGE YIELD', String_Average_Yield),
-            metric_item('AVERAGE MATURITY', String_Average_Maturity),
-            metric_item('AVERAGE DURATION', String_Average_Duration)
+            html.Div([
+                metric_large('FACE VALUE', String_Face_Value, String_PNL_PCT)
+            ], className='facevalue'),
+            html.Div([
+                metric_item('MARKET VALUE', String_Market_Value),
+                metric_item('COST', String_Cost),
+                metric_item('ACCRUED INTEREST', String_Accrued_Interest),
+                metric_item('PNL', String_PNL),
+                metric_item('ANNUAL INCOME', String_Annual_Income),
+                metric_item('AVERAGE RATING', String_Average_Rating),
+                metric_item('AVERAGE COUPON', String_Average_Coupon),
+                metric_item('AVERAGE YIELD', String_Average_Yield),
+                metric_item('AVERAGE MATURITY', String_Average_Maturity),
+                metric_item('AVERAGE DURATION', String_Average_Duration)
+            ], className='othermetrics')
+
         ],className='row tabsrow'),
         html.H1('Portfolio Status'),
         html.Div([
@@ -246,7 +252,7 @@ def tab_metrics():
                     )
                 }
             )
-        ])
+        ], className='status-container')
     ])
 
 def tab_risk_exposure():

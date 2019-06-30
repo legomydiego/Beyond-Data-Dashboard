@@ -4,6 +4,10 @@ html {
     background-color: #e8ecf0;
 }
 
+body { 
+    font-size: 16px
+}
+
 ._dash-undo-redo {
     display: none;
 }
@@ -20,20 +24,28 @@ html {
     align-items: flex-end;
 }
 
-.logo {
+ .logo {
     padding: 6px;
-    height: 90%;
-    flex: 1;
+    height: 85%;
+    flex: .75;
+}
+
+div.logo {
+    border-bottom: 2px solid rgba(47, 84, 118, 0.5);
+}
+
+div.user {
+    border-bottom: 2px solid rgba(47, 84, 118, 0.5);
 }
 
 h1 {
     font-weight: bold;
-    font-size: 1.5rem;
+    font-size: 1.75rem;
 }
 
 .user {
-    align-self: center;
-    flex: 1;
+    /* align-self: center; */
+    flex: 1.5;
 }
 
 .maincontent {
@@ -66,12 +78,15 @@ h1 {
 
 .tabcontainer {
     padding: 20px;
+    padding-top: 2rem;
+    padding-left: 5rem;
 }
 
 .tabsrow {
     /* width: 65%; */
     flex-wrap: wrap;
-    padding-top: 5vh;
+    padding-top: 1rem;
+    padding-bottom: 2.5rem;
 }
 
 .tabsleft {
@@ -90,16 +105,19 @@ h2 {
 }
 
 .tab {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     font-size: 1.5em;
     border: none !important;
     border-radius: 5px 5px 0px 0px;
     border-bottom: solid 2px rgba(47, 84, 118, 0.5) !important;
     background-color: white !important;
-    padding: 10px 5px 5px 5px !important;
+    /* padding: 10px 5px 5px 5px !important; */
     font-family: 'Source Sans Pro', sans-serif;
     font-weight: 600;
     color: #363e45 !important;
-    min-height: 2em;
+    min-height: 2.25em;
 }
 
 .tab--selected {
@@ -113,6 +131,10 @@ h2 {
 
 
 .metricCard, .metricRow {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     color: rgba(0,0,0,0.8);
     /* min-width: 20%; */
     flex-basis: auto; /* default value */
@@ -129,15 +151,18 @@ h2 {
 }
 
 .metricTitle {
-    flex: 1;
+    /* flex: 1; */
     font-size: 1.0em;
-    margin-bottom: .25em;
+    margin-bottom: .75rem;
+    font-weight: 600;
+    color: rgba(54, 62, 69, 0.8);
     /* font-weight: bold; */
 }
 
 .metricValue {
-    font-size: 1.8em;
+    font-size: 1.35rem;
     font-weight: 700;
+    margin-bottom: .75rem;
 }
 
 .metricImportantTitle {
@@ -186,7 +211,7 @@ h2 {
     border-radius: 5px;
     border: solid 2px rgba(47, 84, 118, 0.5);
     background-color: #ffffff;
-    width: 95%;
+    width: 97%;
 }
 
 button {
@@ -210,4 +235,43 @@ button:active {
     border-radius: 5px;
     border: solid 1.5px rgba(40, 52, 66, 0.49);
     background-color: #283442;
+}
+
+.othermetrics {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.row.tabsrow {
+    flex-wrap: nowrap;
+}
+
+.facevalue {
+    display: flex;
+    width: 25%;
+    height: 22.5vh;
+}
+
+.facevalue .metricCard {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+
+.facevalue .metricCard .metricTitle {
+    flex: none;
+}
+
+.status-container {
+    padding-top: 1rem;
+}
+
+.metricPercent {
+    font-family: "Open Sans";
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #4ca683;
 }
