@@ -129,12 +129,14 @@ header_values_string = ['Bond']
 for col in header_values[1:]:
     header_values_string.append(col.strftime("%b %Y"))
 df_cf.reset_index(inplace=True)
+print(header_values_string[1:])
+print(df_cf.sum()[-12:])
 #print(df_cf.T.values.tolist())
 #df_cf.rename({'index':'Bond'}, axis=1, inplace=True)
 
 # Create list with alternating colors for cash flow rows
-odd_row = ['rgb(255,255,255)']
-even_row = ['#E6E6FF'] 
+odd_row = ['rgb(248,248,248)']
+even_row = ['rgb(255,255,255)'] 
 cf_row_colors = [odd_row]
 for row in range(len(df_cf.T.values.tolist())):
     if row%2 == 1:
@@ -144,6 +146,7 @@ for row in range(len(df_cf.T.values.tolist())):
 #print(cf_row_colors)
 cf_row_colors = list(map(list, np.transpose(cf_row_colors)))
 print(cf_row_colors)
+
 #Function to build left nav
 # Diego, uncomment this and comment the other left_nav function to make it look like what you actually want
 def left_nav():
@@ -237,9 +240,8 @@ def tab_metrics():
                     marker=dict(size=df['ADJ']/10000) # set the marker size
                     )],
                     'layout' : go.Layout(
-                        title='Portfolio Status',
-                        xaxis = dict(title = 'Duration', tickmode='linear'), # x-axis label
-                        yaxis = dict(title = 'Yield (%)'),        # y-axis label
+                        xaxis = dict(title = '<b>Duration</b>', tickmode='linear'), # x-axis label
+                        yaxis = dict(title = '<b>Yield (%)</b>'),        # y-axis label
                         hovermode='closest'
                     )
                 }
@@ -357,7 +359,7 @@ def render_content(tab):
                             y=df['DESCRIPTION'],
                             x=df['CHANGE']*100,
                             name='Price Change',
-                            marker=dict(color='rgb(0,128,85)'),
+                            marker=dict(color='rgb(224,141,60)'),
                             orientation= 'h'
                             ),
                         go.Bar(
@@ -377,8 +379,8 @@ def render_content(tab):
                             )
                         ],
                         'layout': go.Layout(
-                            title = 'Total Return',
-                            yaxis = {'automargin': True, 'visible': True, 'showgrid': True},
+                            title = 'Total Return Components',
+                            yaxis = {'automargin': True, 'visible': True, 'showgrid': True, 'gridcolor':'rgb(179,170,170)'},
                             xaxis = dict(dtick=1, tickfont = dict(size= 11)),
                             hovermode= 'closest',
                             height= 70*len(df.index)
@@ -391,33 +393,54 @@ def render_content(tab):
         ]))
     elif tab == 'cash-flow':
         return tab_container('Cash Flow', html.Div([
-            dcc.Graph(id='cash-flow-graph',
-                figure = {'data': [go.Table(
-                                    columnwidth = [1.5,1,1,1,1,1,1,1,1,1,1,1,1],
-                                    header = dict(values=header_values_string, align = ['center']),
-                                    cells = dict(values=df_cf.T.values.tolist()[1:], align = ['left', 'center'], fill=dict(color = cf_row_colors))
-                                    )
-                                  ],
-                        'layout' : go.Layout(height=700)
-                }
-            )
+            html.Div([
+                dcc.Graph(id='cash-flow-graph',
+                    figure = {'data': [go.Table(
+                                        columnwidth = [1.5,1,1,1,1,1,1,1,1,1,1,1,1],
+                                        header = dict(values=header_values_string, align = ['center'], fill = dict(color = 'rgb(191,191,191)')),
+                                        cells = dict(values=df_cf.T.values.tolist()[1:], align = ['left', 'center'], fill=dict(color = cf_row_colors))
+                                        )
+                                    ],
+                            'layout' : go.Layout(height=500, margin=dict(t=30))
+                    }
+                )
+            ]),
+            html.Div([
+                dcc.Graph(id='monthly-cashflow',
+                    figure = {'data':[go.Bar(
+                                x=header_values_string[1:],
+                                y=df_cf.sum()[-12:],
+                                name='Monthly Cashflow',
+                                marker=dict(color='rgb(230,115,0)'),
+                                orientation= 'v'
+                                )
+                            ],
+                            'layout': go.Layout(
+                                title = 'Monthly Cashflow',
+                                yaxis = {'automargin': True},
+                                hovermode= 'closest'
+                            )
+                        }
+                )
+            ])  
         ]))
     elif tab == 'price-history':
         return tab_container('Price History', html.Div([
-            html.Div([
-                dcc.Dropdown(
-                    id='chart_picker',
-                    options= [
-                        {'label': 'Price', 'value': 'Price'},
-                        {'label': 'Return', 'value': 'Return'}
-                    ],
-            )], style={'display':'inline-block','verticalAlign':'top', 'width':'25%'}),
             html.Div([
                 dcc.Dropdown(
                     id='my_bond_picker',
                     options= options_hp,
                     multi=True
             )], style={'display':'inline-block','verticalAlign':'top','width':'50%'}),
+            html.Div([
+                dcc.RadioItems(
+                    id='chart_picker',
+                    options= [
+                        {'label': 'Price', 'value': 'Price'},
+                        {'label': 'Return', 'value': 'Return'}
+                    ],
+                    value= 'Price'
+            )], style={'display':'inline-block','verticalAlign':'top', 'width':10}),
             html.Div([
                 html.Button(id='submit-button',
                     n_clicks=0,
@@ -442,11 +465,12 @@ def render_content(tab):
                 data=df.to_dict("rows"),
                 style_header={
                     'fontWeight': 'bold',
-                    'fontSize': 20,
+                    'fontSize': 18,
                     'vertical-align': 'middle',
-                    'backgroundColor': 'rgb(196,196,196)'
+                    'color': 'rgb(74,74,74)',
+                    'backgroundColor': 'rgb(191,191,191)'
                 },
-                style_cell={'textAlign': 'center'},
+                style_cell={'textAlign': 'center', 'font-family': 'Open Sans'},
                 style_as_list_view=True,
                 style_cell_conditional=[{
                     'if': {'row_index': 'odd'},
@@ -513,7 +537,7 @@ def updated_total_return_graph(n_clicks,column,value):
         fig = {'data':[go.Bar(
                                 y=filtered_df['DESCRIPTION'],
                                 x=filtered_df['CHANGE']*100,
-                                name='Price Change',
+                                name='<b>Price Change</b>',
                                 marker=dict(color='rgb(0,128,85)'),
                                 orientation= 'h',
                                 width= 0.25
@@ -521,7 +545,7 @@ def updated_total_return_graph(n_clicks,column,value):
                             go.Bar(
                                 y=filtered_df['DESCRIPTION'],
                                 x=filtered_df['CARRY']*100,
-                                name='Carry',
+                                name='<b>Carry</b>',
                                 marker=dict(color='rgb(0,51,102)'),
                                 orientation= 'h',
                                 width= 0.25
@@ -529,15 +553,15 @@ def updated_total_return_graph(n_clicks,column,value):
                             go.Bar(
                                 y=filtered_df['DESCRIPTION'],
                                 x=filtered_df['TOTAL_RETURN'],
-                                name='Total Return',
+                                name='<b>Total Return</b>',
                                 marker=dict(color='rgb(93,173,236)'),
                                 orientation= 'h',
                                 width= 0.25
                                 )
                             ],
                             'layout': go.Layout(
-                                title = value +' Total Return',
-                                yaxis = {'automargin': True},
+                                title = value +' Total Return Components',
+                                yaxis = {'automargin': True, 'visible': True, 'showgrid': True, 'gridcolor':'rgb(179,170,170)'},
                                 xaxis = dict(tickfont = dict(size= 11)),
                                 hovermode= 'closest',
                                 bargap= 0,
