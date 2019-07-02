@@ -125,9 +125,9 @@ for bond in list(df_hp.columns[1:]):
 # For Cash Flow df, convert columns to strings, move index to bonds column
 #df_cf.columns[1:] = df_cf.columns[1:].strftime("%b %Y")
 header_values = df_cf.columns.tolist()
-header_values_string = ['Bond']
+header_values_string = ['<b>Bond</b>']
 for col in header_values[1:]:
-    header_values_string.append(col.strftime("%b %Y"))
+    header_values_string.append('<b>'+col.strftime("%b %Y")+'</b>')
 df_cf.reset_index(inplace=True)
 print(header_values_string[1:])
 print(df_cf.sum()[-12:])
@@ -135,7 +135,7 @@ print(df_cf.sum()[-12:])
 #df_cf.rename({'index':'Bond'}, axis=1, inplace=True)
 
 # Create list with alternating colors for cash flow rows
-odd_row = ['rgb(248,248,248)']
+odd_row = ['rgba(47,84,118,0.075)']
 even_row = ['rgb(255,255,255)'] 
 cf_row_colors = [odd_row]
 for row in range(len(df_cf.T.values.tolist())):
@@ -219,13 +219,13 @@ def tab_metrics():
         html.H1('Portfolio Snapshot'),
         html.Div([
             html.Div([
-                metric_large('FACE VALUE', String_Face_Value, String_PNL_PCT)
+                metric_large('PROFIT & LOSS', String_PNL, String_PNL_PCT)
             ], className='facevalue'),
             html.Div([
+                metric_item('FACE VALUE', String_Face_Value),
                 metric_item('MARKET VALUE', String_Market_Value),
-                metric_item('COST', String_Cost),
                 metric_item('ACCRUED INTEREST', String_Accrued_Interest),
-                metric_item('PNL', String_PNL),
+                metric_item('COST', String_Cost),
                 metric_item('ANNUAL INCOME', String_Annual_Income),
                 metric_item('AVERAGE RATING', String_Average_Rating),
                 metric_item('AVERAGE COUPON', String_Average_Coupon),
@@ -394,7 +394,7 @@ def render_content(tab):
                     }
                 
                 )
-            ],style={'max-height':'600px', 'overflow-y': 'auto', 'position': 'relative'})
+            ],style={'max-height':'800px', 'overflow-y': 'auto', 'position': 'relative'})
             
         ]))
     elif tab == 'cash-flow':
@@ -403,8 +403,8 @@ def render_content(tab):
                 dcc.Graph(id='cash-flow-graph',
                     figure = {'data': [go.Table(
                                         columnwidth = [1.5,1,1,1,1,1,1,1,1,1,1,1,1],
-                                        header = dict(values=header_values_string, align = ['center'], fill = dict(color = 'rgb(191,191,191)')),
-                                        cells = dict(values=df_cf.T.values.tolist()[1:], align = ['left', 'center'], fill=dict(color = cf_row_colors))
+                                        header = dict(values=header_values_string, align = ['center'], fill = dict(color = 'rgba(144,166,209,0.7)'), line = dict(color = 'white')),
+                                        cells = dict(values=df_cf.T.values.tolist()[1:], align = ['left', 'center'], fill=dict(color = cf_row_colors), line = dict(color = 'white'))
                                         )
                                     ],
                             'layout' : go.Layout(height=500, margin=dict(t=30))
@@ -474,13 +474,13 @@ def render_content(tab):
                     'fontSize': 18,
                     'vertical-align': 'middle',
                     'color': 'rgb(74,74,74)',
-                    'backgroundColor': 'rgb(191,191,191)'
+                    'backgroundColor': 'rgba(144,166,209,0.7)'
                 },
                 style_cell={'textAlign': 'center', 'font-family': 'Open Sans'},
                 style_as_list_view=True,
                 style_cell_conditional=[{
                     'if': {'row_index': 'odd'},
-                    'backgroundColor': 'rgb(248,248,248)'
+                    'backgroundColor': 'rgba(47,84,118,0.075)'
                 }],
                 sorting=True
             )
@@ -540,6 +540,14 @@ def set_values_options(column):
 def updated_total_return_graph(n_clicks,column,value):
     if column != None and value != None:
         filtered_df = df[df[column]==value]
+        height_value = 0
+        if len(filtered_df.index) == 1: 
+            height_value = 300
+        elif len(filtered_df.index) > 1 and len(filtered_df.index) <= 4:
+            height_value = 200*len(filtered_df.index)
+        else: 
+            height_value = 130*len(filtered_df.index)
+
         fig = {'data':[go.Bar(
                                 y=filtered_df['DESCRIPTION'],
                                 x=filtered_df['CHANGE']*100,
@@ -571,7 +579,7 @@ def updated_total_return_graph(n_clicks,column,value):
                                 xaxis = dict(tickfont = dict(size= 11)),
                                 hovermode= 'closest',
                                 bargap= 0,
-                                height= 300 if len(filtered_df.index) == 1 else 175*len(filtered_df.index)
+                                height= height_value
                             )
                         }
         return fig
