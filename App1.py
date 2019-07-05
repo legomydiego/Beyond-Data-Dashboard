@@ -346,12 +346,14 @@ def render_content(tab):
                     options= [{'label': 'Country Exposure', 'value': 'COUNTRY'},
                              {'label': 'Sector Exposure', 'value': 'SECTOR'},
                              {'label': 'Rating Exposure', 'value': 'RATING'}],
-                    multi=False
+                    multi=False,
+                    placeholder= 'Filter by Risk Exposure'
             )], style={'display':'inline-block','width':'30%'}),
             html.Div([
                 dcc.Dropdown(
                     id='value_filter',
-                    multi=False
+                    multi=False,
+                    placeholder= 'Filter by Subcategory'
             )], style={'display':'inline-block','width':'30%'}),
             html.Div([
                 html.Button(id='filter-button',
@@ -387,7 +389,7 @@ def render_content(tab):
                         'layout': go.Layout(
                             title = 'Total Return Components',
                             yaxis = {'automargin': True, 'visible': True, 'showgrid': True, 'gridcolor':'rgb(179,170,170)'},
-                            xaxis = dict(dtick=1, tickfont = dict(size= 11)),
+                            xaxis = dict(title = '<b>Percentage Return</b>', dtick=1, tickfont = dict(size= 11)),
                             hovermode= 'closest',
                             height= 70*len(df.index)
                         )
@@ -402,9 +404,9 @@ def render_content(tab):
             html.Div([
                 dcc.Graph(id='cash-flow-graph',
                     figure = {'data': [go.Table(
-                                        columnwidth = [1.5,1,1,1,1,1,1,1,1,1,1,1,1],
-                                        header = dict(values=header_values_string, align = ['center'], fill = dict(color = 'rgba(144,166,209,0.7)'), line = dict(color = 'white')),
-                                        cells = dict(values=df_cf.T.values.tolist()[1:], align = ['left', 'center'], fill=dict(color = cf_row_colors), line = dict(color = 'white'))
+                                        columnwidth = [2,1,1,1,1,1,1,1,1,1,1,1,1],
+                                        header = dict(values=header_values_string, align = ['center'], fill = dict(color = 'rgb(173,188,217)'), line = dict(color = 'white'), font = dict(size = 16), height= 20),
+                                        cells = dict(values=df_cf.T.values.tolist()[1:], align = ['left', 'right'], fill=dict(color = cf_row_colors), line = dict(color = 'white'), font = dict(size = 16), height= 25)
                                         )
                                     ],
                             'layout' : go.Layout(height=500, margin=dict(t=30))
@@ -422,7 +424,7 @@ def render_content(tab):
                                 )
                             ],
                             'layout': go.Layout(
-                                title = 'Monthly Cashflow',
+                                title = 'Monthly Cash Flow',
                                 yaxis = {'automargin': True},
                                 hovermode= 'closest'
                             )
@@ -436,7 +438,9 @@ def render_content(tab):
                 dcc.Dropdown(
                     id='my_bond_picker',
                     options= options_hp,
-                    multi=True
+                    multi=True,
+                    placeholder= 'Select Bonds'
+                    
             )], style={'display':'inline-block','verticalAlign':'top','width':'50%'}),
             html.Div([
                 dcc.RadioItems(
