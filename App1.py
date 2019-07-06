@@ -187,7 +187,8 @@ def tabs():
 
 def user_container():
     return html.Div([
-        'Some user stuff!'
+        html.Img(src='../assets/profile.jpg', className='profile'),
+        html.Span('Joe User')
     ], className='user')
 
 def logo():
@@ -195,6 +196,11 @@ def logo():
         '',
         html.Img(src='../assets/Logo.png', className='logo')
     ], className='logo')
+
+def warning():
+    return html.Div([
+        'Please open this dashboard on a larger screen'
+    ], className='smallscreen')
 
 def tab_container(title, insides):
     return html.Div([
@@ -303,31 +309,34 @@ def tab_risk_exposure():
     
 
     return html.Div([
-
+        html.H1('Portfolio Exposure'),
         html.Div([
-            dcc.Graph(id='risk-country', figure = fig_country )
-        ]),
-        html.Div([
-            dcc.Graph(id='risk-ticker', figure = fig_ticker)
-        ]),
-        html.Div([
-            dcc.Graph(id='risk-sector', figure = fig_sector)
-        ]),
-        html.Div([
-            dcc.Graph(id='risk-currency', figure = fig_currency)
-        ]),
-        html.Div([
-            dcc.Graph(id='risk-rating', figure = fig_rating)
-        ]),
-        html.Div([
-            dcc.Graph(id='risk-duration', figure = fig_duration)
-        ])        
+            html.Div([
+                dcc.Graph(id='risk-country', figure = fig_country )
+            ]),
+            html.Div([
+                dcc.Graph(id='risk-ticker', figure = fig_ticker)
+            ]),
+            html.Div([
+                dcc.Graph(id='risk-sector', figure = fig_sector)
+            ]),
+            html.Div([
+                dcc.Graph(id='risk-currency', figure = fig_currency)
+            ]),
+            html.Div([
+                dcc.Graph(id='risk-rating', figure = fig_rating)
+            ]),
+            html.Div([
+                dcc.Graph(id='risk-duration', figure = fig_duration)
+            ])
+        ], className='exposure-container')        
     ])
 
 
 app.layout = html.Div([
     header(),
-    html.Div(id='tabs-content-example')
+    html.Div(id='tabs-content-example'),
+    warning()
 ], className='container')
 
 #Callback to render tabs
@@ -340,27 +349,26 @@ def render_content(tab):
         return tab_container('Risk Exposure', tab_risk_exposure())
     elif tab == 'performance':
         return tab_container('Performance', html.Div([
+            html.H1('Portfolio Performance over Time'),
             html.Div([
                 dcc.Dropdown(
                     id='column_filter',
                     options= [{'label': 'Country Exposure', 'value': 'COUNTRY'},
-                             {'label': 'Sector Exposure', 'value': 'SECTOR'},
-                             {'label': 'Rating Exposure', 'value': 'RATING'}],
+                                {'label': 'Sector Exposure', 'value': 'SECTOR'},
+                                {'label': 'Rating Exposure', 'value': 'RATING'}],
                     multi=False,
                     placeholder= 'Filter by Risk Exposure'
-            )], style={'display':'inline-block','width':'30%'}),
-            html.Div([
+                ),
                 dcc.Dropdown(
                     id='value_filter',
                     multi=False,
                     placeholder= 'Filter by Subcategory'
-            )], style={'display':'inline-block','width':'30%'}),
-            html.Div([
+                ),
                 html.Button(id='filter-button',
                     n_clicks=0,
                     children = 'Submit',
-                    style={'fontsize':24,'marginLeft':'30px'}
-                )],style={'display':'inline-block','verticalAlign':'top'}),
+                )
+            ], className='performance-header'),
             html.Div([
                 dcc.Graph(id='total_return_graph',
                 figure = {'data':[go.Bar(
@@ -402,17 +410,28 @@ def render_content(tab):
     elif tab == 'cash-flow':
         return tab_container('Cash Flow', html.Div([
             html.Div([
+                html.H1('Portfolio "Flow"'),
                 dcc.Graph(id='cash-flow-graph',
                     figure = {'data': [go.Table(
                                         columnwidth = [2,1,1,1,1,1,1,1,1,1,1,1,1],
-                                        header = dict(values=header_values_string, align = ['center'], fill = dict(color = 'rgb(173,188,217)'), line = dict(color = 'white'), font = dict(size = 16), height= 20),
-                                        cells = dict(values=df_cf.T.values.tolist()[1:], align = ['left', 'right'], fill=dict(color = cf_row_colors), line = dict(color = 'white'), font = dict(size = 16), height= 25)
+                                        header = dict(values=header_values_string, 
+                                            align = ['center'], 
+                                            fill = dict(color = 'rgb(173,188,217)'), 
+                                            line = dict(color = 'white'), 
+                                            font = dict(size = 16), 
+                                            height= 20),
+                                        cells = dict(values=df_cf.T.values.tolist()[1:], 
+                                            align = ['left', 'right'], 
+                                            fill=dict(color = cf_row_colors), 
+                                            line = dict(color = 'white'), 
+                                            font = dict(size = 16), 
+                                            height= 25)
                                         )
                                     ],
                             'layout' : go.Layout(height=500, margin=dict(t=30))
                     }
                 )
-            ]),
+            ], className='cashflow-graph'),
             html.Div([
                 dcc.Graph(id='monthly-cashflow',
                     figure = {'data':[go.Bar(
@@ -430,19 +449,19 @@ def render_content(tab):
                             )
                         }
                 )
-            ])  
-        ]))
+            ], className='cashflow-barchart')  
+        ], className='cashflow'))
     elif tab == 'price-history':
         return tab_container('Price History', html.Div([
+            html.H1('Portfolio Price History', className='history-header'),
+            html.Label('ASSETS', className='history-label'),
             html.Div([
                 dcc.Dropdown(
                     id='my_bond_picker',
                     options= options_hp,
                     multi=True,
                     placeholder= 'Select Bonds'
-                    
-            )], style={'display':'inline-block','verticalAlign':'top','width':'50%'}),
-            html.Div([
+                ),
                 dcc.RadioItems(
                     id='chart_picker',
                     options= [
@@ -450,13 +469,13 @@ def render_content(tab):
                         {'label': 'Return', 'value': 'Return'}
                     ],
                     value= 'Price'
-            )], style={'display':'inline-block','verticalAlign':'top', 'width':10}),
-            html.Div([
+                ),
                 html.Button(id='submit-button',
                     n_clicks=0,
                     children = 'Submit',
                     style={'fontsize':24,'marginLeft':'30px'}
-                )],style={'display':'inline-block','verticalAlign':'top'}),
+                )
+            ], className='price-header'),
             html.Div([
                 dcc.Graph(id='price_history_graph',
                     
