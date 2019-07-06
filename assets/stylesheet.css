@@ -292,7 +292,13 @@ button:active {
 
 .facevalue .metricCard .metricTitle {
     flex: none;
+    font-size: 1.4vw;
 }
+
+.facevalue .metricCard .metricValue {
+    font-size: 1.4vw;
+}
+
 
 .status-container {
     padding-top: 1rem;
@@ -300,7 +306,7 @@ button:active {
 
 .metricPercent {
     font-family: "Open Sans";
-    font-size: 1.1rem;
+    font-size: 1.2vw;
     font-weight: 600;
     color: #4ca683;
 }
@@ -309,7 +315,6 @@ button:active {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    padding-top: 2rem;
 }
 
 .exposure-container > div {
@@ -318,7 +323,7 @@ button:active {
 }
 
 .exposure-container > div > div {
-   max-height: 375px;
+   max-height: 425px;
 }
 
 .exposure-container .js-plotly-plot {
@@ -375,13 +380,13 @@ button:active {
 } 
 
 #cash-flow-graph {
-    margin-top: 2rem;
+    /* margin-top: 2rem; */
     margin-bottom: 1rem;
-    max-height: 35vh;
+    max-height: 37.5vh;
 }
 
 #monthly-cashflow {
-    max-height: 35vh;
+    max-height: 37.5vh;
 }
 
 #my_bond_picker {

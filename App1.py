@@ -309,7 +309,6 @@ def tab_risk_exposure():
     
 
     return html.Div([
-        html.H1('Portfolio Exposure'),
         html.Div([
             html.Div([
                 dcc.Graph(id='risk-country', figure = fig_country )
@@ -349,7 +348,6 @@ def render_content(tab):
         return tab_container('Risk Exposure', tab_risk_exposure())
     elif tab == 'performance':
         return tab_container('Performance', html.Div([
-            html.H1('Portfolio Performance over Time'),
             html.Div([
                 dcc.Dropdown(
                     id='column_filter',
@@ -410,7 +408,6 @@ def render_content(tab):
     elif tab == 'cash-flow':
         return tab_container('Cash Flow', html.Div([
             html.Div([
-                html.H1('Portfolio "Flow"'),
                 dcc.Graph(id='cash-flow-graph',
                     figure = {'data': [go.Table(
                                         columnwidth = [2,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -453,7 +450,6 @@ def render_content(tab):
         ], className='cashflow'))
     elif tab == 'price-history':
         return tab_container('Price History', html.Div([
-            html.H1('Portfolio Price History', className='history-header'),
             html.Label('ASSETS', className='history-label'),
             html.Div([
                 dcc.Dropdown(
