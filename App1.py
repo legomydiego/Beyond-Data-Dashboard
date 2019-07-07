@@ -450,7 +450,6 @@ def render_content(tab):
         ], className='cashflow'))
     elif tab == 'price-history':
         return tab_container('Price History', html.Div([
-            html.Label('ASSETS', className='history-label'),
             html.Div([
                 dcc.Dropdown(
                     id='my_bond_picker',

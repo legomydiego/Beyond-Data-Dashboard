@@ -157,7 +157,7 @@ h2 {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center;
     color: rgba(0,0,0,0.8);
     /* min-width: 20%; */
     flex-basis: auto; /* default value */
@@ -356,7 +356,6 @@ button:active {
 .performance-header, .price-header {
     display: flex;
     width: 60%;
-    margin-top: 1rem;
     margin-bottom: 1rem;
 }
 
