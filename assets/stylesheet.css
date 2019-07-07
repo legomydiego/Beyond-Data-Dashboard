@@ -323,7 +323,7 @@ button:active {
 }
 
 .exposure-container > div > div {
-   max-height: 380px;
+   max-height: 360px;
 }
 
 .exposure-container .js-plotly-plot {
