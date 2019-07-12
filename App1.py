@@ -146,10 +146,8 @@ for row in range(len(df_cf['A'])):
         cf_row_colors.append(odd_row)
     else:
         cf_row_colors.append(even_row)
-#print(cf_row_colors)
 cf_row_colors = list(map(list, np.transpose(cf_row_colors)))
-print(cf_row_colors)
-print(df_cf.T.values.tolist())
+
 # For Cash Flow values, create new df with values in money format
 df_cf_money = df_cf.iloc[:,1:13].applymap(lambda x: format_currency(x,'USD',locale='en_US')if x != 0 else 0)
 df_cf_money.insert(0, 'BOND', df_cf['A'])
@@ -362,8 +360,10 @@ def render_content(tab):
                 dcc.Dropdown(
                     id='column_filter',
                     options= [{'label': 'Country Exposure', 'value': 'COUNTRY'},
+                                {'label': 'Issuer Exposure', 'value': 'ISSUER'},
                                 {'label': 'Sector Exposure', 'value': 'SECTOR'},
-                                {'label': 'Rating Exposure', 'value': 'RATING'}],
+                                {'label': 'Rating Exposure', 'value': 'RATING'},
+                                {'label': 'Currency Exposure', 'value': 'CURRENCY'}],
                     multi=False,
                     placeholder= 'Filter by Risk Exposure'
                 ),
@@ -435,7 +435,7 @@ def render_content(tab):
                                             height= 25)
                                         )
                                     ],
-                            'layout' : go.Layout(height=500, margin=dict(t=30))
+                            'layout' : go.Layout(height=500, margin=dict(t=30, b=30))
                     }
                 )
             ], className='cashflow-graph'),
