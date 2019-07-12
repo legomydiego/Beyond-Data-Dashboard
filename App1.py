@@ -4,6 +4,8 @@ import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objs as go
 import dash_table
+from dash_table.Format import Format
+import dash_table.FormatTemplate as FormatTemplate
 from plotly import tools
 import pandas as pd
 import numpy as np
@@ -86,6 +88,9 @@ String_Average_Coupon = str(Average_Coupon)+'%'
 String_Average_Duration = str(Average_Duration)
 String_Average_Rating = Average_Rating
 
+# Create column to display coupons in detailed view
+df['COUPON_DETAILED_VIEW'] = df['COUPON']/100
+
 # Dropdown options for risk exposure
 options=['COUNTRY','SECTOR','RATING']
 
@@ -128,9 +133,7 @@ header_values = df_cf.columns.tolist()
 header_values_string = ['<b>Bond</b>']
 for col in header_values[1:]:
     header_values_string.append('<b>'+col.strftime("%b %Y")+'</b>')
-df_cf.reset_index(inplace=True)
-print(header_values_string[1:])
-print(df_cf.sum()[-12:])
+#df_cf.reset_index(inplace=True)
 #print(df_cf.T.values.tolist())
 #df_cf.rename({'index':'Bond'}, axis=1, inplace=True)
 
@@ -138,7 +141,7 @@ print(df_cf.sum()[-12:])
 odd_row = ['rgba(47,84,118,0.075)']
 even_row = ['rgb(255,255,255)'] 
 cf_row_colors = [odd_row]
-for row in range(len(df_cf.T.values.tolist())):
+for row in range(len(df_cf['A'])):
     if row%2 == 1:
         cf_row_colors.append(odd_row)
     else:
@@ -146,6 +149,13 @@ for row in range(len(df_cf.T.values.tolist())):
 #print(cf_row_colors)
 cf_row_colors = list(map(list, np.transpose(cf_row_colors)))
 print(cf_row_colors)
+print(df_cf.T.values.tolist())
+# For Cash Flow values, create new df with values in money format
+df_cf_money = df_cf.iloc[:,1:13].applymap(lambda x: format_currency(x,'USD',locale='en_US')if x != 0 else 0)
+df_cf_money.insert(0, 'BOND', df_cf['A'])
+
+# Create variable containing values for Cash Flow table
+row_values = df_cf_money.T.values.tolist()
 
 #Function to build left nav
 # Diego, uncomment this and comment the other left_nav function to make it look like what you actually want
@@ -187,8 +197,8 @@ def tabs():
 
 def user_container():
     return html.Div([
-        html.Img(src='../assets/profile.jpg', className='profile'),
-        html.Span('Joe User')
+        html.Img(src='../assets/User_Icon.jpeg', className='profile'),
+        html.Span('User ')
     ], className='user')
 
 def logo():
@@ -222,7 +232,7 @@ def metric_large(title, value, percent):
 
 def tab_metrics():
     return html.Div([
-        html.H1('Portfolio Snapshot'),
+        html.H1('PORTFOLIO SNAPSHOT', style={'fontSize': 30}),
         html.Div([
             html.Div([
                 metric_large('PROFIT & LOSS', String_PNL, String_PNL_PCT)
@@ -241,7 +251,7 @@ def tab_metrics():
             ], className='othermetrics')
 
         ],className='row tabsrow'),
-        html.H1('Portfolio Status'),
+        html.H1('PORTFOLIO STATUS', style={'fontSize': 30}),
         html.Div([
             dcc.Graph(id='portfolio-bubble-graph',
                 figure = {'data': [go.Scatter(          # start with a normal scatter plot
@@ -373,7 +383,7 @@ def render_content(tab):
                             y=df['DESCRIPTION'],
                             x=df['CHANGE']*100,
                             name='Price Change',
-                            marker=dict(color='rgb(224,141,60)'),
+                            marker=dict(color='#E39149'),
                             orientation= 'h'
                             ),
                         go.Bar(
@@ -381,19 +391,19 @@ def render_content(tab):
                             x=df['CARRY']*100,
                             text=df['CARRY']*100,
                             name='Carry',
-                            marker=dict(color='rgb(0,51,102)'),
+                            marker=dict(color='#82E1A7'),
                             orientation= 'h'
                             ),
                         go.Bar(
                             y=df['DESCRIPTION'],
                             x=df['TOTAL_RETURN'],
                             name='Total Return',
-                            marker=dict(color='rgb(93,173,236)'),
+                            marker=dict(color='#305476'),
                             orientation= 'h'
                             )
                         ],
                         'layout': go.Layout(
-                            title = 'Total Return Components',
+                            title = '<b>TOTAL RETURN COMPONENTS</b>',
                             yaxis = {'automargin': True, 'visible': True, 'showgrid': True, 'gridcolor':'rgb(179,170,170)'},
                             xaxis = dict(title = '<b>Percentage Return</b>', dtick=1, tickfont = dict(size= 11)),
                             hovermode= 'closest',
@@ -417,7 +427,7 @@ def render_content(tab):
                                             line = dict(color = 'white'), 
                                             font = dict(size = 16), 
                                             height= 20),
-                                        cells = dict(values=df_cf.T.values.tolist()[1:], 
+                                        cells = dict(values=row_values, 
                                             align = ['left', 'right'], 
                                             fill=dict(color = cf_row_colors), 
                                             line = dict(color = 'white'), 
@@ -440,7 +450,7 @@ def render_content(tab):
                                 )
                             ],
                             'layout': go.Layout(
-                                title = 'Monthly Cash Flow',
+                                title = '<b>MONTHLY CASH FLOW</b>',
                                 yaxis = {'automargin': True},
                                 hovermode= 'closest'
                             )
@@ -476,7 +486,7 @@ def render_content(tab):
                     
                     figure={
                         'data':hp_traces,
-                        'layout':go.Layout(title="Historical Price", height=700)
+                        'layout':go.Layout(title='<b>HISTORICAL PRICE</b>', height=700)
                     }
                 )
             ])
@@ -485,7 +495,57 @@ def render_content(tab):
         return tab_container('Detailed View', html.Div([
             dash_table.DataTable(
                 id='table',
-                columns=[{"name": i, "id": i} for i in ['ISSUER','COUPON','MATURITY','ADJ','COST','PX','CHANGE','TOTAL','RTG','GROUP','COUNTRY']],
+                columns=[{
+                    'name': 'ISSUER', 
+                    'id': 'ISSUER',
+                    'type':'text'
+                    },{
+                    'name': 'COUPON', 
+                    'id': 'COUPON_DETAILED_VIEW',
+                    'type':'numeric',
+                    'format': FormatTemplate.percentage(3)
+                    },{
+                    'name': 'MATURITY', 
+                    'id': 'MATURITY',
+                    'type':'numeric'
+                    },{
+                    'name': 'FACE VALUE', 
+                    'id': 'ADJ',
+                    'type':'numeric',
+                    'format': FormatTemplate.money(0)
+                    },{
+                    'name': 'COST', 
+                    'id': 'COST',
+                    'type':'numeric'
+                    },{
+                    'name': 'PRICE', 
+                    'id': 'PX',
+                    'type':'numeric'
+                    },{
+                    'name': 'CHANGE', 
+                    'id': 'CHANGE',
+                    'type':'numeric',
+                    'format': FormatTemplate.percentage(2)
+                    },{
+                    'name': 'MARKET VALUE', 
+                    'id': 'TOTAL',
+                    'type':'numeric',
+                    'format': FormatTemplate.money(2)
+                    },{
+                    'name': 'RATINGS', 
+                    'id': 'RTG',
+                    'type':'text'
+                    },{
+                    'name': 'GROUP', 
+                    'id': 'GROUP',
+                    'type':'text'
+                    },{
+                    'name': 'COUNTRY', 
+                    'id': 'COUNTRY',
+                    'type':'text'
+                    }
+                    
+                    ],
                 data=df.to_dict("rows"),
                 style_header={
                     'fontWeight': 'bold',
@@ -496,10 +556,56 @@ def render_content(tab):
                 },
                 style_cell={'textAlign': 'center', 'font-family': 'Open Sans'},
                 style_as_list_view=True,
-                style_cell_conditional=[{
+                style_cell_conditional=[
+                    {
                     'if': {'row_index': 'odd'},
                     'backgroundColor': 'rgba(47,84,118,0.075)'
-                }],
+                    },
+                    {
+                    'if': {'column_id': 'ISSUER'},
+                    'textAlign': 'left'
+                    },
+                    {
+                    'if': {'column_id': 'COUPON_DETAILED_VIEW'},
+                    'textAlign': 'right'
+                    },
+                    {
+                    'if': {'column_id': 'MATURITY'},
+                    'textAlign': 'right'
+                    },
+                    {
+                    'if': {'column_id': 'ADJ'},
+                    'textAlign': 'right'
+                    },
+                    {
+                    'if': {'column_id': 'COST'},
+                    'textAlign': 'right'
+                    },
+                    {
+                    'if': {'column_id': 'PX'},
+                    'textAlign': 'right'
+                    },
+                    {
+                    'if': {'column_id': 'CHANGE'},
+                    'textAlign': 'right'
+                    },
+                    {
+                    'if': {'column_id': 'TOTAL'},
+                    'textAlign': 'right'
+                    },
+                    {
+                    'if': {'column_id': 'RTG'},
+                    'textAlign': 'left'
+                    },
+                    {
+                    'if': {'column_id': 'GROUP'},
+                    'textAlign': 'left'
+                    },
+                    {
+                    'if': {'column_id': 'COUNTRY'},
+                    'textAlign': 'left'
+                    } 
+                ],
                 sorting=True
             )
         ]))
@@ -570,7 +676,7 @@ def updated_total_return_graph(n_clicks,column,value):
                                 y=filtered_df['DESCRIPTION'],
                                 x=filtered_df['CHANGE']*100,
                                 name='<b>Price Change</b>',
-                                marker=dict(color='rgb(0,128,85)'),
+                                marker=dict(color='#E39149'),
                                 orientation= 'h',
                                 width= 0.25
                                 ),
@@ -578,7 +684,7 @@ def updated_total_return_graph(n_clicks,column,value):
                                 y=filtered_df['DESCRIPTION'],
                                 x=filtered_df['CARRY']*100,
                                 name='<b>Carry</b>',
-                                marker=dict(color='rgb(0,51,102)'),
+                                marker=dict(color='#82E1A7'),
                                 orientation= 'h',
                                 width= 0.25
                                 ),
@@ -586,13 +692,13 @@ def updated_total_return_graph(n_clicks,column,value):
                                 y=filtered_df['DESCRIPTION'],
                                 x=filtered_df['TOTAL_RETURN'],
                                 name='<b>Total Return</b>',
-                                marker=dict(color='rgb(93,173,236)'),
+                                marker=dict(color='#305476'),
                                 orientation= 'h',
                                 width= 0.25
                                 )
                             ],
                             'layout': go.Layout(
-                                title = value +' Total Return Components',
+                                title = '<b>'+value+'</b>' + ' <b>Total Return Components</b>',
                                 yaxis = {'automargin': True, 'visible': True, 'showgrid': True, 'gridcolor':'rgb(179,170,170)'},
                                 xaxis = dict(tickfont = dict(size= 11)),
                                 hovermode= 'closest',
@@ -615,14 +721,14 @@ def update_hp_chart(n_clicks,selected_bonds,chart_picker):
         if chart_picker == 'Price':
             fig={
                     'data':hp_traces,
-                    'layout':go.Layout(title="Historical Price", height=700)
+                    'layout':go.Layout(title='<b>HISTORICAL PRICE</b>', height=700)
                 }
             return fig
 
         elif chart_picker == 'Return':
             fig={
                     'data':rets_traces,
-                    'layout':go.Layout(title="Historical Price", height=700)
+                    'layout':go.Layout(title='<b>INDEXED RETURN</b>', height=700)
                 }
             return fig
     elif len(selected_bonds) >= 1:
@@ -632,7 +738,7 @@ def update_hp_chart(n_clicks,selected_bonds,chart_picker):
                 traces.append({'x':df_hp['DATE'],'y':df_hp[bond],'name':bond})
             fig={
                 'data':traces,
-                'layout':{'title':'Historical Price'}
+                'layout':{'title':'<b>HISTORICAL PRICE</b>'}
                 }
             return fig
         elif chart_picker == 'Return':
@@ -640,7 +746,7 @@ def update_hp_chart(n_clicks,selected_bonds,chart_picker):
                 traces.append({'x':rets['DATE'],'y':rets[bond],'name':bond})
             fig={
                 'data':traces,
-                'layout':{'title':'Historical Price'}
+                'layout':{'title':'<b>INDEXED RETURN</b>'}
                 }
             return fig
 
