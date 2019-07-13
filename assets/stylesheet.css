@@ -103,6 +103,7 @@ h1 {
     padding-top: 2.5%;
     padding-left: 5%;
     padding-right: 5%;
+    overflow-y: auto;
 }
 
 .tabsrow {
