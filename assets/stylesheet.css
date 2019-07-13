@@ -6,7 +6,20 @@ html {
 
 body { 
     font-size: 16px;
-s}
+    height: 100vh;
+}
+
+#react-entry-point {
+    height: 100%;
+}
+
+.container {
+    height: 100%;
+}
+
+#tabs-content-example {
+    height: 90vh;
+}
 
 ._dash-undo-redo {
     display: none;
@@ -103,6 +116,7 @@ h1 {
     padding-top: 2.5%;
     padding-left: 5%;
     padding-right: 5%;
+    height: 100%;
     overflow-y: auto;
 }
 
@@ -431,7 +445,7 @@ button:active {
 }
 
 .performance-graph {
-    height: 70vh;
+    height: 130vh;
     overflow-y: auto; 
     position: relative;
 }
