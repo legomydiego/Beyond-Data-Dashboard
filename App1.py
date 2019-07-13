@@ -412,7 +412,7 @@ def render_content(tab):
                     }
                 
                 )
-            ],style={'max-height':'800px', 'overflow-y': 'auto', 'position': 'relative'})
+            ], className='performance-graph')
             
         ]))
     elif tab == 'cash-flow':

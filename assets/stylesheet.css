@@ -5,8 +5,8 @@ html {
 }
 
 body { 
-    font-size: 16px
-}
+    font-size: 16px;
+s}
 
 ._dash-undo-redo {
     display: none;
@@ -371,6 +371,7 @@ button:active {
     max-height: 37.5vh;
 }
 
+
 .performance-header, .price-header {
     display: flex;
     width: 60%;
@@ -424,7 +425,15 @@ button:active {
     color: rgba(47, 84, 118, 0.8);
 }
 
+#total_return_graph {
+    height: 96%;
+}
 
+.performance-graph {
+    height: 70vh;
+    overflow-y: auto; 
+    position: relative;
+}
 
 @media only screen and (min-width: 1023px) {
     .smallscreen {
