@@ -195,7 +195,7 @@ def tabs():
 
 def user_container():
     return html.Div([
-        html.Img(src='../assets/User_Icon.jpeg', className='profile'),
+        html.Img(src='../assets/profile picture.jpg', className='profile'),
         html.Span('User ')
     ], className='user')
 
