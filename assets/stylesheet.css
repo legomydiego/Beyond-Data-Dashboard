@@ -445,7 +445,6 @@ button:active {
 }
 
 .performance-graph {
-    height: 130vh;
     overflow-y: auto; 
     position: relative;
 }

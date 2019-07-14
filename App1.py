@@ -412,7 +412,7 @@ def render_content(tab):
                     }
                 
                 )
-            ], className='performance-graph')
+            ], className='performance-graph', style={'max-height': '70vh'})
             
         ]))
     elif tab == 'cash-flow':
