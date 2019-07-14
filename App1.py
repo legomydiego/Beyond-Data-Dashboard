@@ -489,7 +489,7 @@ def render_content(tab):
                         'layout':go.Layout(title='<b>HISTORICAL PRICE</b>', height=700)
                     }
                 )
-            ])
+            ], className='price-history-graph')
         ]))
     elif tab == 'detailed-view':
         return tab_container('Detailed View', html.Div([
