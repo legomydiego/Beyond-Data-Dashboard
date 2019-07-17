@@ -608,7 +608,7 @@ def render_content(tab):
                 ],
                 sorting=True
             )
-        ]))
+        ], className="detailed-container"))
     
 
 #Callback to Render graphs for Risk Exposures
